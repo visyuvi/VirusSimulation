@@ -2,7 +2,7 @@ import pygame
 import random
 
 minMovement = 0.5
-maxSpeed = 5
+maxSpeed = 20
 
 
 class Person:
@@ -30,8 +30,9 @@ class Person:
         pygame.draw.circle(screen, pygame.Color(self.colors[self.status]), (round(self.x), round(self.y)), self.radius)
 
     # execute once per frame
-    def update(self):
+    def update(self, screen):
         self.move()
+        self.checkCollidingWithWall(screen)
         if self.status == "sick":
             self.turnsSick += 1
             if self.turnsSick == self.recoveryTime:
@@ -41,3 +42,15 @@ class Person:
         if not self.socialDistancing:
             self.x += self.vx
             self.y += self.vy
+
+    # check for collisions with walls and update velocities
+    def checkCollidingWithWall(self, screen):
+        if self.x + self.radius >= screen.get_width() and self.vx > 0:  # self.vx > 0 is to prevent it from getting
+            # stuck to the wall
+            self.vx *= -1
+        elif self.x - self.radius <= 0 and self.vx < 0:
+            self.vx *= -1
+        if self.y + self.radius >= screen.get_height() and self.vy > 0:
+            self.vy *= -1
+        elif self.y - self.radius <= 0 and self.vy < 0:
+            self.vy *= -1
