@@ -28,7 +28,7 @@ def main():
                 running = False
 
         # update people
-        patientZero.update(screen)
+        patientZero.update(screen, [])
 
         # update graphics
         screen.fill(pygame.Color('gray'))

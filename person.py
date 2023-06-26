@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 
 minMovement = 0.5
 maxSpeed = 20
@@ -30,13 +31,24 @@ class Person:
         pygame.draw.circle(screen, pygame.Color(self.colors[self.status]), (round(self.x), round(self.y)), self.radius)
 
     # execute once per frame
-    def update(self, screen):
+    def update(self, screen, people):
         self.move()
-        self.checkCollidingWithWall(screen)
         if self.status == "sick":
             self.turnsSick += 1
             if self.turnsSick == self.recoveryTime:
                 self.status = "recovered"
+        self.checkCollidingWithWall(screen)
+        for other in people:
+            if self != other:  # ensure you don't check for collision with yourself
+                if self.checkCollidingWithOther():
+                    self.updateCollisionVelocities()
+                    # update status
+                    if self.status == "sick" and other.status == "healthy":
+                        other.status = "sick"
+                    elif other.status == "sick" and self.status == "healthy":
+                        self.status = "sick"
+
+
 
     def move(self, ):
         if not self.socialDistancing:
@@ -54,3 +66,41 @@ class Person:
             self.vy *= -1
         elif self.y - self.radius <= 0 and self.vy < 0:
             self.vy *= -1
+
+    # return True if the self is colliding with the other, False otherwise
+    def checkCollidingWithOther(self, other):
+        distance = math.sqrt(math.pow(self.x - other.x, 2) + math.pow(self.y - other.y, 2))
+        if distance <= self.radius + other.radius:
+            return True
+        return False
+
+    # update velocities on collision
+    def updateCollisionVelocities(self, other):
+        # type 1 collision - both objects are moving; neither is social distancing
+
+        if not self.socialDistancing and not other.socialDistancing:
+            tempVX = self.vx
+            tempVY = self.vy
+            self.vx = other.vx
+            self.vy = other.vy
+            other.vx = tempVX
+            other.vy = tempVY
+
+        # type 2 collision : one object that is social distancing and one that is not
+
+        elif other.socialDistancing:
+            # works okay, not great
+            # self.vx *= -1
+            # self.vy *= -1
+            #
+            # # works okay
+            # tempVX = self.vx
+            # self.vx = self.vy
+            # self.vy = tempVX
+
+            magV = math.sqrt(math.pow(self.vx, 2) + math.pow(self.vy, 2))
+            tempVector = (self.vx + (self.x - other.x), self.vy + (self.y - other.y))
+            magTempVector = math.sqrt(math.pow(tempVector[0], 2) + math.pow(tempVector[1], 2))
+            normTempVector = (tempVector[0] / magTempVector, tempVector[1] / magTempVector)
+            self.vx = normTempVector[0] * magV
+            self.vy = normTempVector[1] * magV
