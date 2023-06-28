@@ -18,9 +18,27 @@ def main():
     # variables
     running = True
     spawnBuffer = 10
+    numPeople = 200
 
     # create people
-    patientZero = Person(random.randint(spawnBuffer, WIDTH - spawnBuffer), random.randint(spawnBuffer, HEIGHT - spawnBuffer), "sick", False)
+    patientZero = Person(random.randint(spawnBuffer, WIDTH - spawnBuffer),
+                         random.randint(spawnBuffer, HEIGHT - spawnBuffer), "sick", False)
+    people = [patientZero]
+    for i in range(numPeople - 1):
+        socialDistancing = False
+        person = None
+
+        colliding = True
+        while colliding:
+            person = Person(random.randint(spawnBuffer, WIDTH - spawnBuffer),
+                            random.randint(spawnBuffer, HEIGHT - spawnBuffer), "healthy", socialDistancing)
+            colliding = False
+            for person2 in people:
+                if person.checkCollidingWithOther(person2):
+                    colliding = True
+                    break
+
+        people.append(person)
 
     while running:
         for e in pygame.event.get():
@@ -28,11 +46,13 @@ def main():
                 running = False
 
         # update people
-        patientZero.update(screen, [])
+        for person in people:
+            person.update(screen, people)
 
         # update graphics
         screen.fill(pygame.Color('gray'))
-        patientZero.draw(screen)
+        for person in people:
+            person.draw(screen)
         pygame.display.flip()
 
         # pause for frames

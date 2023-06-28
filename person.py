@@ -3,7 +3,7 @@ import random
 import math
 
 minMovement = 0.5
-maxSpeed = 20
+maxSpeed = 5
 
 
 class Person:
@@ -40,15 +40,13 @@ class Person:
         self.checkCollidingWithWall(screen)
         for other in people:
             if self != other:  # ensure you don't check for collision with yourself
-                if self.checkCollidingWithOther():
-                    self.updateCollisionVelocities()
+                if self.checkCollidingWithOther(other):
+                    self.updateCollisionVelocities(other)
                     # update status
                     if self.status == "sick" and other.status == "healthy":
                         other.status = "sick"
                     elif other.status == "sick" and self.status == "healthy":
                         self.status = "sick"
-
-
 
     def move(self, ):
         if not self.socialDistancing:
